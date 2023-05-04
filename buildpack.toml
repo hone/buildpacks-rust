@@ -1,0 +1,9 @@
+api = "0.9"
+
+[buildpack]
+id = "hone/rust"
+version = "0.1.0"
+name = "Rust Buildpack"
+
+[[stacks]]
+id = "*"

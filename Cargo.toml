@@ -6,3 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cargo = { version = "0.70.1", default-features = false, features = ["vendored-openssl"] }
+flate2 = "1.0.26"
+libcnb = "0.12.0"
+libherokubuildpack = { version = "0.12.0", default-features = false, features = ["log"] }
+reqwest = { version = "0.11", default-features = false, features = ["blocking", "rustls-tls"] }
+serde = { version = "1.0.160", features = ["derive"] }
+tar = "0.4.38"
+tempfile = "3.5.0"
+thiserror = "1.0.40"
+toml = { version = "0.7.3", features = ["parse"] }

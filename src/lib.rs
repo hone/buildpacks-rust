@@ -18,6 +18,10 @@ pub enum BuildpackError {
     Io(#[from] io::Error),
     #[error("could not download file")]
     Download(#[from] util::DownloadError),
+    #[error("Rust Toolchain PATH is not set")]
+    RustToolchainPath,
+    #[error("Unable to get Cargo Metadata")]
+    CargoMetadata(#[from] cargo_metadata::Error),
 }
 
 pub struct RustBuildpack;

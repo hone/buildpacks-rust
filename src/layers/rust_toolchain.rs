@@ -7,10 +7,13 @@ use libcnb::{
     Buildpack,
 };
 use libherokubuildpack::log::{log_header, log_info};
+use rust_releases::{Channel, FetchResources, ReleaseIndex, RustDist};
 use std::{path::Path, process::Command};
 
-const RUST_URL: &str =
-    "https://static.rust-lang.org/dist/rust-1.69.0-x86_64-unknown-linux-gnu.tar.gz";
+const ARCH: &str = "x86_64";
+const VENDOR: &str = "unknown";
+const OS: &str = "linux";
+const ENV: &str = "gnu";
 
 pub struct RustToolchain;
 
@@ -32,19 +35,26 @@ impl Layer for RustToolchain {
         layer_path: &Path,
     ) -> Result<LayerResult<Self::Metadata>, <Self::Buildpack as Buildpack>::Error> {
         log_header("Setting up the Rust Toolchain");
+        let release_index = release_index();
+        let release = release_index.most_recent().unwrap();
+        let version = release.version();
 
-        log_info("Downloading tarball");
+        log_info(format!("Latest Stable: {}", release.version()));
+        log_info("Downloading tarball...");
+        let rust_long = format!("rust-{}-{}-{}-{}-{}", version, ARCH, VENDOR, OS, ENV);
         let mut rust_tarball = tempfile::tempfile()?;
-        let size = util::download(RUST_URL, &mut rust_tarball)?;
-        log_info(format!("File size: {size}"));
+        util::download(
+            &format!("https://static.rust-lang.org/dist/{rust_long}.tar.gz",),
+            &mut rust_tarball,
+        )?;
 
-        log_info("Extracting tarball");
+        log_info("Extracting tarball...");
         let tmpdir = tempfile::tempdir()?;
         util::extract_tar_gz(&mut rust_tarball, tmpdir.path())?;
 
         log_info("Installing...");
         Command::new("./install.sh")
-            .current_dir(tmpdir.path().join("rust-1.69.0-x86_64-unknown-linux-gnu"))
+            .current_dir(tmpdir.path().join(rust_long))
             .arg(format!("--destdir={}", layer_path.display()))
             .arg("--prefix=/")
             .spawn()
@@ -61,4 +71,9 @@ impl Layer for RustToolchain {
         log_header("Re-use existing Rust Toolchain");
         Ok(ExistingLayerStrategy::Keep)
     }
+}
+
+fn release_index() -> ReleaseIndex {
+    let source = RustDist::fetch_channel(Channel::Stable).unwrap();
+    ReleaseIndex::from_source(source).unwrap()
 }

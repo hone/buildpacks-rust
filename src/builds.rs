@@ -43,7 +43,13 @@ pub fn build(context: BuildContext<RustBuildpack>) -> libcnb::Result<BuildResult
         )
         .map_err(|e| libcnb::Error::BuildpackError(BuildpackError::Io(e)))?;
         let process_type: ProcessType = target.parse().unwrap();
-        launch.process(ProcessBuilder::new(process_type, [target]).build());
+        launch.process(
+            ProcessBuilder::new(
+                process_type,
+                [context.app_dir.join(target).to_string_lossy()],
+            )
+            .build(),
+        );
     }
 
     BuildResultBuilder::new().launch(launch.build()).build()

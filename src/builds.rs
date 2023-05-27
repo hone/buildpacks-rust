@@ -27,14 +27,13 @@ pub fn build(context: BuildContext<RustBuildpack>) -> libcnb::Result<BuildResult
         .env("PATH", rust_toolchain_path)
         .manifest_path(context.app_dir.join("Cargo.toml"))
         .exec()
-        .map_err(|err| libcnb::Error::BuildpackError(BuildpackError::CargoMetadata(err)))?;
+        .map_err(|err| BuildpackError::CargoMetadata(err))?;
     let targets = binary_targets(&cargo_metadata_info);
 
     let target_layer =
         context.handle_layer(layer_name!("target"), layers::Target { env: toolchain_env })?;
 
-    prune_src(&context.app_dir)
-        .map_err(|e| libcnb::Error::BuildpackError(BuildpackError::Io(e)))?;
+    prune_src(&context.app_dir).map_err(|e| BuildpackError::Io(e))?;
     let mut launch = LaunchBuilder::new();
     for target in targets {
         fs::copy(

@@ -24,6 +24,12 @@ pub enum BuildpackError {
     CargoMetadata(#[from] cargo_metadata::Error),
 }
 
+impl From<BuildpackError> for libcnb::Error<BuildpackError> {
+    fn from(e: BuildpackError) -> libcnb::Error<BuildpackError> {
+        libcnb::Error::BuildpackError(e)
+    }
+}
+
 pub struct RustBuildpack;
 
 impl Buildpack for RustBuildpack {

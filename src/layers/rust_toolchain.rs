@@ -2,12 +2,12 @@ use crate::{util, RustBuildpack};
 use libcnb::{
     build::BuildContext,
     data::layer_content_metadata::LayerTypes,
-    generic::GenericMetadata,
     layer::{ExistingLayerStrategy, Layer, LayerData, LayerResult, LayerResultBuilder},
     Buildpack,
 };
 use libherokubuildpack::log::{log_header, log_info};
 use rust_releases::{Channel, FetchResources, ReleaseIndex, RustDist};
+use serde::{Deserialize, Serialize};
 use std::{path::Path, process::Command};
 
 const ARCH: &str = "x86_64";
@@ -15,11 +15,20 @@ const VENDOR: &str = "unknown";
 const OS: &str = "linux";
 const ENV: &str = "gnu";
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Metadata {
+    version: String,
+    arch: String,
+    vendor: String,
+    os: String,
+    env: String,
+}
+
 pub struct RustToolchain;
 
 impl Layer for RustToolchain {
     type Buildpack = RustBuildpack;
-    type Metadata = GenericMetadata;
+    type Metadata = Metadata;
 
     fn types(&self) -> LayerTypes {
         LayerTypes {
@@ -60,7 +69,15 @@ impl Layer for RustToolchain {
             .spawn()
             .and_then(|mut child| child.wait())?;
 
-        LayerResultBuilder::new(GenericMetadata::default()).build()
+        let metadata = Metadata {
+            version: format!("{version}"),
+            arch: ARCH.to_string(),
+            vendor: VENDOR.to_string(),
+            os: OS.to_string(),
+            env: ENV.to_string(),
+        };
+
+        LayerResultBuilder::new(metadata).build()
     }
 
     fn existing_layer_strategy(
